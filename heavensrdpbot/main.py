@@ -118,6 +118,13 @@ async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
     insts = await get_instances()
 
+async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != OWNER_ID:
+        await update.message.reply_text("No autorizado.")
+        return
+
+    insts = await get_instances()
+
     if not insts:
         await update.message.reply_text("❌ No se encontraron instancias o hubo un error con la API.")
         return
@@ -125,12 +132,13 @@ async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = "💻 Instancias encontradas:\n\n"
     for inst in insts:
         try:
-            msg += f"➡️ {inst.get('displayName', inst['name'])} | ID: {inst['instanceId']}\n"
+            msg += f"➡️ {inst['displayName']} | ID: {inst['instanceId']}\n"
         except Exception as e:
             print("❌ Error al procesar una instancia:", inst)
             print("❌ Excepción:", e)
 
     await update.message.reply_text(msg)
+
 
 # 🚀 Iniciar bot
 if __name__ == '__main__':
