@@ -4,11 +4,13 @@ import requests
 import time
 import logging
 import asyncio
+import nest_asyncio
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from dotenv import load_dotenv
 
 load_dotenv()
+nest_asyncio.apply()
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -54,19 +56,16 @@ async def get_instances():
         "Authorization": f"Bearer {token}"
     }
 
-    url = "https://api.contabo.com/v1/compute/instances"
-
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(INSTANCES_URL, headers=headers)
         response.raise_for_status()
         data = response.json()
-        print("✅ Respuesta completa:", data)  # DEBUG
+        print("✅ Respuesta completa:", data)
         return data.get("instances", [])
     except requests.exceptions.RequestException as e:
         print("❌ Error al consultar instancias:", e)
         print("❌ Respuesta:", response.text if response else "Sin respuesta")
         return []
-
 
 # 🔁 Reboot
 async def reboot_instance(instance_id):
@@ -130,16 +129,18 @@ async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(msg)
 
+# 🚀 Iniciar bot
 if __name__ == '__main__':
     async def main():
+        app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+
+        app.add_handler(CommandHandler("register", register))
+        app.add_handler(CommandHandler("reboot", reboot))
+        app.add_handler(CommandHandler("instances", instances))
+
         await app.bot.delete_webhook(drop_pending_updates=True)
         print("✅ Webhook eliminado")
         print("Bot corriendo...")
         await app.run_polling()
 
-    try:
-        loop = asyncio.get_event_loop()
-        loop.create_task(main())
-        loop.run_forever()
-    except RuntimeError as e:
-        print("❌ Error con el loop de asyncio:", e)
+    asyncio.run(main())
