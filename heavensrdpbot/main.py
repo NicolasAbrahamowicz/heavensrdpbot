@@ -27,6 +27,7 @@ telegram_to_instance = {}
 # Logs
 logging.basicConfig(level=logging.INFO)
 
+# 🔐 Obtener token
 async def get_access_token():
     global access_token, last_token_time
     if access_token and time.time() - last_token_time < 500:
@@ -44,30 +45,25 @@ async def get_access_token():
     access_token = response.json()['access_token']
     last_token_time = time.time()
     return access_token
-import uuid
 
+# 🖥️ Obtener instancias
 async def get_instances():
+    token = await get_access_token()
     headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "x-api-key": CONTABO_API_KEY
+        "Authorization": f"Bearer {token}"
     }
 
-    url = "https://api.contabo.com/v1/compute/instances"
-
-    response = requests.get(url, headers=headers)
-    
+    response = requests.get(INSTANCES_URL, headers=headers)
     try:
         response.raise_for_status()
         data = response.json()
-        print("✅ Respuesta completa:", data)  # DEBUG
-        return data.get("instances", [])  # Asegura una lista
+        return data.get("instances", data)  # fallback por si cambia el formato
     except requests.exceptions.HTTPError as e:
         print("❌ Error HTTP:", e)
         print("❌ Respuesta:", response.text)
         return []
 
-
-
+# 🔁 Reboot
 async def reboot_instance(instance_id):
     token = await get_access_token()
     headers = {"Authorization": f"Bearer {token}"}
@@ -75,6 +71,7 @@ async def reboot_instance(instance_id):
     response = requests.post(url, headers=headers)
     return response.status_code == 202
 
+# 👤 Registrar usuario
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         await update.message.reply_text("No autorizado.")
@@ -96,6 +93,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("No se encontró esa VPS.")
 
+# 🔁 Comando reboot
 async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     instance_id = telegram_to_instance.get(user_id)
@@ -109,9 +107,10 @@ async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Error al reiniciar la RDP.")
 
+# 📋 Comando instances
 async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
     insts = await get_instances()
-    
+
     if not insts:
         await update.message.reply_text("❌ No se encontraron instancias o hubo un error con la API.")
         return
@@ -126,7 +125,7 @@ async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(msg)
 
-
+# 🚀 Iniciar bot
 if __name__ == '__main__':
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
