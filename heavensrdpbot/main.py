@@ -3,6 +3,7 @@ import os
 import requests
 import time
 import logging
+import asyncio
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from dotenv import load_dotenv
@@ -137,5 +138,13 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("reboot", reboot))
     app.add_handler(CommandHandler("instances", instances))
 
-    print("Bot corriendo...")
-    app.run_polling()
+    async def start_bot():
+        # 🔥 Elimina cualquier webhook anterior
+        await app.bot.delete_webhook(drop_pending_updates=True)
+        print("✅ Webhook eliminado")
+
+        print("Bot corriendo...")
+        await app.run_polling()
+
+    asyncio.run(start_bot())
+
