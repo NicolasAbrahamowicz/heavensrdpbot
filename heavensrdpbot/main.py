@@ -51,7 +51,6 @@ async def get_access_token():
     return access_token
 
 # 🖥️ Obtener instancias
-# 🖥️ Obtener instancias
 async def get_instances():
     token = await get_access_token()
     headers = {
@@ -65,7 +64,7 @@ async def get_instances():
         response.raise_for_status()
         data = response.json()
         print("✅ Respuesta completa:", data)
-        return data.get("instances", [])
+        return data.get("data", [])  # ⚠️ CORREGIDO: antes decía "instances"
     except requests.exceptions.RequestException as e:
         print("❌ Error al consultar instancias:", e)
         print("❌ Respuesta:", response.text if response else "Sin respuesta")
