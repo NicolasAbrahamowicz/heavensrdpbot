@@ -47,15 +47,25 @@ async def get_access_token():
 import uuid
 
 async def get_instances():
-    token = await get_access_token()
     headers = {
-        "Authorization": f"Bearer {token}",
-        "x-request-id": str(uuid.uuid4()),
-        "x-trace-id": str(uuid.uuid4()),
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "x-api-key": CONTABO_API_KEY
     }
-    response = requests.get(INSTANCES_URL, headers=headers)
-    response.raise_for_status()
-    return response.json()
+
+    url = "https://api.contabo.com/v1/compute/instances"
+
+    response = requests.get(url, headers=headers)
+    
+    try:
+        response.raise_for_status()
+        data = response.json()
+        print("✅ Respuesta completa:", data)  # DEBUG
+        return data.get("instances", [])  # Asegura una lista
+    except requests.exceptions.HTTPError as e:
+        print("❌ Error HTTP:", e)
+        print("❌ Respuesta:", response.text)
+        return []
+
 
 
 async def reboot_instance(instance_id):
@@ -100,15 +110,22 @@ async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Error al reiniciar la RDP.")
 
 async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != OWNER_ID:
-        await update.message.reply_text("No autorizado.")
+    insts = await get_instances()
+    
+    if not insts:
+        await update.message.reply_text("❌ No se encontraron instancias o hubo un error con la API.")
         return
 
-    insts = await get_instances()
-    msg = "💻 VPS Actuales:\n\n"
+    msg = "💻 Instancias encontradas:\n\n"
     for inst in insts:
-        msg += f"➡️ {inst['name']} | ID: {inst['instanceId']}\n"
+        try:
+            msg += f"➡️ {inst['name']} | ID: {inst['instanceId']}\n"
+        except Exception as e:
+            print("❌ Error al procesar una instancia:", inst)
+            print("❌ Excepción:", e)
+
     await update.message.reply_text(msg)
+
 
 if __name__ == '__main__':
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
