@@ -3,6 +3,7 @@ import os
 import requests
 import time
 import logging
+import uuid
 import asyncio
 import nest_asyncio
 from telegram import Update
@@ -50,10 +51,13 @@ async def get_access_token():
     return access_token
 
 # 🖥️ Obtener instancias
+# 🖥️ Obtener instancias
 async def get_instances():
     token = await get_access_token()
     headers = {
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {token}",
+        "x-request-id": str(uuid.uuid4()),
+        "x-trace-id": str(uuid.uuid4()),
     }
 
     try:
