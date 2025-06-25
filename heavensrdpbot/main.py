@@ -125,7 +125,7 @@ async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = "💻 Instancias encontradas:\n\n"
     for inst in insts:
         try:
-            msg += f"➡️ {inst['name']} | ID: {inst['instanceId']}\n"
+            msg += f"➡️ {inst.get('displayName', inst['name'])} | ID: {inst['instanceId']}\n"
         except Exception as e:
             print("❌ Error al procesar una instancia:", inst)
             print("❌ Excepción:", e)
