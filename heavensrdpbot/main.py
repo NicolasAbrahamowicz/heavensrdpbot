@@ -130,21 +130,16 @@ async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(msg)
 
-# 🚀 Iniciar bot
 if __name__ == '__main__':
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-
-    app.add_handler(CommandHandler("register", register))
-    app.add_handler(CommandHandler("reboot", reboot))
-    app.add_handler(CommandHandler("instances", instances))
-
-    async def start_bot():
-        # 🔥 Elimina cualquier webhook anterior
+    async def main():
         await app.bot.delete_webhook(drop_pending_updates=True)
         print("✅ Webhook eliminado")
-
         print("Bot corriendo...")
         await app.run_polling()
 
-    asyncio.run(start_bot())
-
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(main())
+        loop.run_forever()
+    except RuntimeError as e:
+        print("❌ Error con el loop de asyncio:", e)
