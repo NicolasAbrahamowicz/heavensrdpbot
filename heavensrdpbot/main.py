@@ -105,14 +105,14 @@ async def reboot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     instance_id = telegram_to_instance.get(user_id)
     if not instance_id:
-        await update.message.reply_text("Tu RDP no está registrada.")
+        await update.message.reply_text("Your RDP is not registered, please message @webomr your Telegram ID.")
         return
 
     ok = await reboot_instance(instance_id)
     if ok:
-        await update.message.reply_text("Tu RDP está reiniciándose... 🔁")
+        await update.message.reply_text("Your RDP is rebooting... 🔁")
     else:
-        await update.message.reply_text("Error al reiniciar la RDP.")
+        await update.message.reply_text("Error rebooting RDP.")
 
 # 📋 Comando instances
 async def instances(update: Update, context: ContextTypes.DEFAULT_TYPE):
