@@ -44,13 +44,19 @@ async def get_access_token():
     access_token = response.json()['access_token']
     last_token_time = time.time()
     return access_token
+import uuid
 
 async def get_instances():
     token = await get_access_token()
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "x-request-id": str(uuid.uuid4()),
+        "x-trace-id": str(uuid.uuid4()),
+    }
     response = requests.get(INSTANCES_URL, headers=headers)
     response.raise_for_status()
     return response.json()
+
 
 async def reboot_instance(instance_id):
     token = await get_access_token()
