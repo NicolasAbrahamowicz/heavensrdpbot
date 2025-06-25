@@ -53,15 +53,19 @@ async def get_instances():
         "Authorization": f"Bearer {token}"
     }
 
-    response = requests.get(INSTANCES_URL, headers=headers)
+    url = "https://api.contabo.com/v1/compute/instances"
+
     try:
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
-        return data.get("instances", data)  # fallback por si cambia el formato
-    except requests.exceptions.HTTPError as e:
-        print("❌ Error HTTP:", e)
-        print("❌ Respuesta:", response.text)
+        print("✅ Respuesta completa:", data)  # DEBUG
+        return data.get("instances", [])
+    except requests.exceptions.RequestException as e:
+        print("❌ Error al consultar instancias:", e)
+        print("❌ Respuesta:", response.text if response else "Sin respuesta")
         return []
+
 
 # 🔁 Reboot
 async def reboot_instance(instance_id):
