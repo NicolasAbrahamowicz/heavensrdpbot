@@ -59,16 +59,34 @@ async def get_instances():
         "x-trace-id": str(uuid.uuid4()),
     }
 
+    all_instances = []
+    page = 1
+
     try:
-        response = requests.get(INSTANCES_URL, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        print("✅ Respuesta completa:", data)
-        return data.get("data", [])  # ⚠️ CORREGIDO: antes decía "instances"
+        while True:
+            url = f"{INSTANCES_URL}?page={page}&size=100"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+
+            # Puede venir como 'instances' o 'data'
+            instances = data.get("instances") or data.get("data") or []
+            all_instances.extend(instances)
+
+            pagination = data.get("_pagination")
+            if not pagination or page >= pagination.get("totalPages", 1):
+                break
+
+            page += 1
+
+        print("✅ Todas las instancias:", all_instances)
+        return all_instances
+
     except requests.exceptions.RequestException as e:
         print("❌ Error al consultar instancias:", e)
         print("❌ Respuesta:", response.text if response else "Sin respuesta")
         return []
+
 
 # 🔁 Reboot
 async def reboot_instance(instance_id):
