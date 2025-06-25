@@ -93,7 +93,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     instances = await get_instances()
 
     for i in instances:
-        if i['name'] == nombre_vps:
+        if i['displayName'] == nombre_vps:
             telegram_to_instance[telegram_id] = i['instanceId']
             await update.message.reply_text(f"Registrado: {telegram_id} -> {nombre_vps}")
             return
